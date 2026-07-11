@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Theo Dõi Lớp Học & Huấn Luyện</title>
+    <!-- Tailwind CSS để tối ưu giao diện trực quan, khoa học -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .image-grid::-webkit-scrollbar { height: 4px; }
+        .image-grid::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-graduation-cap text-2xl text-amber-400"></i>
+                <h1 class="text-xl font-bold tracking-tight">HỆ THỐNG THEO DÕI LỚP HUẤN LUYỆN</h1>
+            </div>
+            <button onclick="toggleAdminPanel()" class="bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center space-x-2 shadow-sm">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Bảng Điều Khiển Admin</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6 max-w-7xl">
+        
+        <!-- BẢNG ĐIỀU KHIỂN ADMIN (Ẩn/Hiện mặc định) -->
+        <section id="adminPanel" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8 transition-all duration-300">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-plus text-indigo-600"></i>
+                    <span>Thêm Lớp Học Mới</span>
+                </h2>
+                <button onclick="toggleAdminPanel()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <form id="classForm" onsubmit="addClass(event)" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Tên Lớp Học</label>
+                        <input type="text" id="className" required placeholder="Ví dụ: An toàn Điện Nhóm 3" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Thời Gian Huấn Luyện</label>
+                        <input type="text" id="classTime" required placeholder="Ví dụ: 08:00 - 17:00 (15/07/2026)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Giảng Viên Phụ Trách</label>
+                        <select id="classTrainer" required class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <!-- Danh sách giảng viên được render tự động -->
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Hình Ảnh Lớp Học (Nhập nhiều URL, cách nhau bằng dấu phẩy)</label>
+                    <textarea id="classImages" rows="2" placeholder="https://viethanit.edu.vn/wp-content/uploads/2020/12/37.jpg, https://antoanlaodong.org.vn/wp-content/uploads/2021/04/huan-luyen-an-toan-lao-dong-nhom-3-3.jpg" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <p class="text-xs text-slate-400 mt-1">Lưu ý: Nếu không nhập URL ảnh, hệ thống sẽ tự động gán ảnh mặc định để minh họa.</p>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm px-6 py-2.5 rounded-lg shadow-sm transition-all flex items-center space-x-2">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Lưu Lớp Học</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- DANH SÁCH LỚP HỌC HỒ SƠ CHÍNH -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h2 class="font-bold text-slate-900 tracking-tight flex items-center space-x-2">
+                    <i class="fa-solid fa-list-check text-indigo-600"></i>
+                    <span>Danh Sách Lớp Học Đang Theo Dõi</span>
+                </h2>
+                <span id="classCount" class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1 rounded-full">0 lớp</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 bg-slate-100/70 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                            <th class="py-3 px-4 text-center w-16">STT</th>
+                            <th class="py-3 px-4 min-w-[200px]">Tên Lớp Học</th>
+                            <th class="py-3 px-4 min-w-[180px]">Thời Gian Huấn Luyện</th>
+                            <th class="py-3 px-4 min-w-[220px]">Giảng Viên / Xác Nhận</th>
+                            <th class="py-3 px-4 min-w-[320px]">Hình Ảnh Hiện Trường</th>
+                        </tr>
+                    </thead>
+                    <tbody id="classTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
+                        <!-- Dữ liệu lớp học hiển thị tại đây -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Danh sách giảng viên cố định trong hệ thống
+        const trainers = [
+            { id: "gv01", name: "Vũ Văn Kế", phone: "0901234567", role: "Chuyên gia An toàn Metro/Công nghiệp" },
+            { id: "gv02", name: "Nguyễn Văn An", phone: "0918765432", role: "Giảng viên Điện & Cơ khí" },
+            { id: "gv03", name: "Trần Thị Bình", phone: "0987654321", role: "Chuyên gia HSE & Y tế lao động" },
+            { id: "gv04", name: "Lê Hoàng Đẹp", phone: "0933445566", role: "Kiểm định viên & Giảng viên nhóm 1,2,3,4" }
+        ];
+
+        // Khởi tạo dữ liệu lớp học mẫu ban đầu
+        let classes = [
+            {
+                id: 1,
+                name: "Huấn luyện An toàn Điện chuyên sâu - Bậc 4/5",
+                time: "08:00 - 17:00 (15/07/2026)",
+                trainerId: "gv01",
+                images: [
+                    "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80",
+                    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=400&q=80"
+                ]
+            },
+            {
+                id: 2,
+                name: "An toàn lao động Nhóm 3 - Vận hành thiết bị nâng",
+                time: "13:30 - 17:00 (18/07/2026)",
+                trainerId: "gv04",
+                images: [
+                    "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=400&q=80"
+                ]
+            }
+        ];
+
+        // Tải danh sách giảng viên vào Form Select đầu vào
+        function initTrainerSelect() {
+            const select = document.getElementById('classTrainer');
+            select.innerHTML = trainers.map(t => 
+                `<option value="${t.id}">${t.name} (${t.role})</option>`
+            ).join('');
+        }
+
+        // Ẩn/Hiện Bảng điều khiển Admin
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.classList.toggle('hidden');
+        }
+
+        // Thực thi việc render danh sách lớp học ra bảng dữ liệu cấu trúc
+        function renderClasses() {
+            const tbody = document.getElementById('classTableBody');
+            document.getElementById('classCount').innerText = `${classes.length} lớp`;
+
+            if (classes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-slate-400 italic bg-slate-50/50">
+                            Hiện chưa có lớp học nào được ghi nhận trong hệ thống.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = classes.map((cls, index) => {
+                const trainer = trainers.find(t => t.id === cls.trainerId) || { name: "N/A", phone: "", role: "Không rõ" };
+                
+                // Chuẩn bị chuỗi HTML danh sách hình ảnh
+                const imagesHtml = cls.images.map(img => `
+                    <div class="relative group flex-shrink-0 w-24 h-16 rounded-md overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
+                        <img src="${img}" alt="Hình ảnh lớp học" class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=200&q=80'">
+                    </div>
+                `).join('');
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="py-4 px-4 text-center font-semibold text-slate-500">${index + 1}</td>
+                        <td class="py-4 px-4 font-bold text-slate-900">${escapeHtml(cls.name)}</td>
+                        <td class="py-4 px-4 text-slate-600 font-medium">${escapeHtml(cls.time)}</td>
+                        <td class="py-4 px-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-slate-800">${escapeHtml(trainer.name)}</span>
+                                <span class="text-xs text-slate-500 mb-1.5">${escapeHtml(trainer.role)}</span>
+                                <a href="tel:${trainer.phone}" class="inline-flex items-center space-x-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 w-fit px-2.5 py-1 rounded-md text-xs font-bold border border-sky-200 transition-all">
+                                    <i class="fa-solid fa-phone-volume animate-pulse text-sky-600"></i>
+                                    <span>Gọi xác nhận: ${trainer.phone}</span>
+                                </a>
+                            </div>
+                        </td>
+                        <td class="py-4 px-4">
+                            <div class="image-grid flex items-center space-x-2 overflow-x-auto py-1 max-w-[400px]">
+                                ${imagesHtml}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Thêm lớp học mới từ submit của Admin Form
+        function addClass(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('className').value.trim();
+            const time = document.getElementById('classTime').value.trim();
+            const trainerId = document.getElementById('classTrainer').value;
+            const imagesInput = document.getElementById('classImages').value.trim();
+            
+            // Xử lý mảng ảnh từ chuỗi phân tách bởi dấu phẩy
+            let images = [];
+            if (imagesInput) {
+                images = imagesInput.split(',').map(url => url.trim()).filter(url => url.length > 0);
+            } else {
+                // Ảnh mặc định ngẫu nhiên nếu không nhập để giữ giao diện đẹp
+                images = ["https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=400&q=80"];
+            }
+
+            const newClass = {
+                id: Date.now(), // Định danh duy nhất dạng Unix timestamp
+                name: name,
+                time: time,
+                trainerId: trainerId,
+                images: images
+            };
+
+            classes.push(newClass);
+            renderClasses();
+            
+            // Reset Form và ẩn Panel sau khi thêm thành công
+            document.getElementById('classForm').reset();
+            toggleAdminPanel();
+        }
+
+        // Tiện ích chống lỗi XSS Injection dữ liệu đầu vào văn bản bừa bãi
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Tự động kích hoạt khi tải trang
+        window.onload = function() {
+            initTrainerSelect();
+            renderClasses();
+        };
+    </script>
+</body>
+</html>
